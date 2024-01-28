@@ -1,6 +1,6 @@
 # Contracts
 
-## 3. How to run:
+## 1. How to run:
 
 For better interaction, enter the workspace within the "contracts" folder.
 
@@ -30,6 +30,6 @@ TESTNET_BLOCKSCAN_API_KEY=""
 make deploy
 ```
 
-## Supported Networks:
+## 2. Supported Networks:
 
 Sepolia: https://sepolia.etherscan.io/address/0x7d50f2785ca051ce566e54a6f93a2980f5e3a798
