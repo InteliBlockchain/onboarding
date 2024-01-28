@@ -1,66 +1,35 @@
-## Foundry
+# Contracts
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+## 3. How to run:
 
-Foundry consists of:
+For better interaction, enter the workspace within the "contracts" folder.
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+- *Run the command below to generate the .env file and install the project dependencies contained in the `./.gitmodules` file:*
 
-## Documentation
-
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
+```bash
+make setup
 ```
 
-### Test
-
-```shell
-$ forge test
+- *Run the command below to execute the tests:*
+```bash
+make test
 ```
 
-### Format
+> [!IMPORTANT]
+> Before running the command below, confirm that the `./.env` file contains all the necessary variables for deployment. For deploying on a local network, add the following values to the variables:
 
-```shell
-$ forge fmt
+```env
+RPC_URL="http://localhost:8545"
+NETWORK="localhost"
+PRIVATE_KEY="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" // You can use any private key from the local environment here.
+TESTNET_BLOCKSCAN_API_KEY=""
 ```
 
-### Gas Snapshots
-
-```shell
-$ forge snapshot
+- *Run the command below to deploy the contracts:*
+```bash
+make deploy
 ```
 
-### Anvil
+## Supported Networks:
 
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+Sepolia: https://sepolia.etherscan.io/address/0x7d50f2785ca051ce566e54a6f93a2980f5e3a798
