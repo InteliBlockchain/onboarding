@@ -1,4 +1,13 @@
 # Contracts
+This project uses foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.
+
+Foundry consists of:
+-   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
+-   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
+-   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
+-   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+
+Follow the instructions provided [here](https://book.getfoundry.sh/getting-started/installation) for the installation process. Additionally, ensure that your computer has the [make](https://askubuntu.com/questions/161104/how-do-i-install-make) binary installed.
 
 ## 1. How to run:
 
@@ -25,4 +34,4 @@ make deploy
 
 ## 2. Supported Networks:
 
-Sepolia: https://sepolia.etherscan.io/address/0x7d50f2785ca051ce566e54a6f93a2980f5e3a798
+Sepolia: https://sepolia.etherscan.io/address/0xc5d1185d2a592fc1609f63a5f448805cff8d56ec

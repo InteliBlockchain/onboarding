@@ -17,10 +17,11 @@ contract ERC721IB is
     ERC721Burnable
 {
     uint256 private _nextTokenId;
+    event SafeMint(address indexed to, string uri);
 
     constructor(
         address initialOwner
-    ) ERC721("ERC721IB.sol", "IB") Ownable(initialOwner) {}
+    ) ERC721("ERC721IB", "IB") Ownable(initialOwner) {}
 
     function pause() public onlyOwner {
         _pause();
@@ -34,6 +35,7 @@ contract ERC721IB is
         uint256 tokenId = _nextTokenId++;
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
+        emit SafeMint(to,uri);
     }
 
     // The following functions are overrides required by Solidity.

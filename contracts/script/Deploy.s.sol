@@ -7,7 +7,7 @@ import {ERC721IB} from "../src/token/ERC721/ERC721IB.sol";
 
 contract DeployContracts is Script {
     function run() external {
-        bytes32 _salt = bytes32(abi.encode(2024));
+        bytes32 _salt = bytes32(abi.encode(2023));
         vm.startBroadcast();
         ERC721IB erc721 = new ERC721IB{salt: bytes32(_salt)}(msg.sender);
         vm.stopBroadcast();
