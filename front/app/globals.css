@@ -1,3 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+html,
+body {
+  background-image: url("./background-ib.svg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-color: #010173;
+}
