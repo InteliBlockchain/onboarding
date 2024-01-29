@@ -4,6 +4,13 @@ import { useState } from "react";
 import logo from "@/app/logo.svg";
 import github from "@/app/github.svg";
 import wpp from "@/app/wpp.svg";
+import { useForm } from "react-hook-form";
+
+type FormData = {
+  name: string;
+  email: string;
+  wallet: string;
+};
 
 export default function Home() {
   // {
@@ -21,17 +28,18 @@ export default function Home() {
   // 	"image": "https://ipfs.io/ipfs/QmbB1kr63iGUHLFfibtHjabrpoQW41xBXMTZRTC8dQ1hRG",
   // 	"name": "Sad Circle"
   // }
+  const {
+    handleSubmit,
+    register,
+    formState: { errors },
+  } = useForm<FormData>();
 
-  const [name, setName] = useState("");
-  const [wallet, setWallet] = useState("");
-  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const onSubmit = async () => {
-    console.log("Clicked");
+  const onSubmit = (data: { name: string; email: string; wallet: string }) => {
     setLoading(true);
 
-    setTimeout(() => {}, 1000);
+    setTimeout(() => console.log(data), 1000);
 
     setLoading(false);
   };
@@ -83,7 +91,10 @@ export default function Home() {
             .
           </p>
 
-          <div className="flex flex-col mt-8">
+          <form
+            className="flex flex-col mt-8"
+            onSubmit={handleSubmit(onSubmit)}
+          >
             <label htmlFor="name">Seu nome</label>
             <span className="text-sm text-gray-200">
               Esse nome será gravado no NFT para provar sua presença
@@ -93,8 +104,14 @@ export default function Home() {
               type="text"
               placeholder="Nome"
               className="p-2 text-black rounded-md shadow-md"
-              onChange={(e) => setName(e.target.value)}
+              {...register("name", {
+                required: "Nome obrigatório",
+                min: 3,
+              })}
             />
+            <span className="text-red-300">
+              {errors.name && errors.name.message}
+            </span>
 
             <label className="mt-4" htmlFor="wallet">
               Email
@@ -107,8 +124,17 @@ export default function Home() {
               type="email"
               className="p-2 rounded-md shadow-md text-black"
               placeholder="your.email@email.com"
-              onChange={(e) => setEmail(e.target.value)}
+              {...register("email", {
+                required: "Email obrigatório",
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: "invalid email address",
+                },
+              })}
             />
+            <span className="text-red-300">
+              {errors.email && errors.email.message}
+            </span>
 
             <label className="mt-4" htmlFor="wallet">
               Wallet
@@ -122,21 +148,17 @@ export default function Home() {
               minLength={42}
               maxLength={42}
               className="p-2 rounded-md shadow-md text-black"
+              {...register("wallet", { required: "Carteira obrigatória" })}
               placeholder="0x00...0000"
-              onChange={(e) => setWallet(e.target.value)}
             />
+            <span className="text-red-300">
+              {errors.wallet && errors.wallet.message}
+            </span>
 
             <button
               className="text-xl mt-4 p-2 bg-blue-500 text-white rounded-md shadow-md disabled:bg-gray-300 disabled:cursor-not-allowed"
-              disabled={
-                !name ||
-                !wallet ||
-                !email ||
-                wallet.length < 42 ||
-                wallet.length > 42 ||
-                loading
-              }
-              onClick={onSubmit}
+              type="submit"
+              disabled={loading}
             >
               {!loading ? (
                 <span>Gerar NFT</span>
@@ -161,7 +183,7 @@ export default function Home() {
                 </div>
               )}
             </button>
-          </div>
+          </form>
         </div>
 
         <div className="mt-8">
