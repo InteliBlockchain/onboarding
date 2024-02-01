@@ -1,11 +1,13 @@
 "use client";
-import Image from "next/image";
 import { useState } from "react";
+import Image from "next/image";
 import logo from "@/app/logo.svg";
 import github from "@/app/github.svg";
 import wpp from "@/app/wpp.svg";
 import { useForm } from "react-hook-form";
-
+import { ethers } from "ethers";
+import erc721abi from "@/app/ERC721ABI.json";
+import { create } from "ipfs-http-client";
 type FormData = {
   name: string;
   email: string;
@@ -13,21 +15,32 @@ type FormData = {
 };
 
 export default function Home() {
-  // {
-  // 	"attributes": [
-  // 		{
-  // 			"trait_type": "Shape",
-  // 			"value": "Circle"
-  // 		},
-  // 		{
-  // 			"trait_type": "Mood",
-  // 			"value": "Sad"
-  // 		}
-  // 	],
-  // 	"description": "A sad circle.",
-  // 	"image": "https://ipfs.io/ipfs/QmbB1kr63iGUHLFfibtHjabrpoQW41xBXMTZRTC8dQ1hRG",
-  // 	"name": "Sad Circle"
-  // }
+  const contractAddress = "0xC5D1185d2a592Fc1609F63a5f448805CFF8d56ec";
+  const abi = erc721abi;
+  const privateKey = "e1bc8a6cf9c83a7741a10a6d33d698ccce67c3053ea570342e1a52722a8d64d8";
+
+  const ipfsClient = create({ host: "ipfs.infura.io", port: 5001, protocol: "https" });
+
+  const mintNFT = async (data: any) => {
+    try {
+      // Upload dados para IPFS
+      const ipfsResponse = await ipfsClient.add(JSON.stringify(data));
+
+      const provider =  ethers.getDefaultProvider("sepolia");
+      const wallet = new ethers.Wallet(privateKey, provider);
+
+      const contract = new ethers.Contract(contractAddress, abi, wallet);
+
+      const transaction = await contract.safeMint(wallet.address, ipfsResponse.path);
+      const receipt = await transaction.wait();
+
+      console.log("Transação confirmada:", receipt);
+      return receipt;
+    } catch (error) {
+      console.error("Erro ao chamar a função safeMint:", error);
+    }
+  };
+
   const {
     handleSubmit,
     register,
@@ -36,13 +49,19 @@ export default function Home() {
 
   const [loading, setLoading] = useState(false);
 
-  const onSubmit = (data: { name: string; email: string; wallet: string }) => {
+  const onSubmit = async (data: FormData) => {
     setLoading(true);
 
-    setTimeout(() => console.log(data), 1000);
+    try {
+      const receipt = await mintNFT(data);
+      console.log("Receipt:", receipt);
+    } catch (error) {
+      console.error("Erro ao criar NFT:", error);
+    }
 
     setLoading(false);
   };
+
 
   return (
     <div className="flex min-h-screen w-full h-full items-center justify-center">
@@ -159,6 +178,7 @@ export default function Home() {
               className="text-xl mt-4 p-2 bg-blue-500 text-white rounded-md shadow-md disabled:bg-gray-300 disabled:cursor-not-allowed"
               type="submit"
               disabled={loading}
+              onClick={(e) => {mintNFT(e)}}
             >
               {!loading ? (
                 <span>Gerar NFT</span>
