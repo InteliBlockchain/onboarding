@@ -152,7 +152,7 @@ export default function Home() {
             uma carteira na rede Sepolia.{" "}
           </p>
           <p className="text-sm md:text-base text-gray-200 my-2">
-            Ainda não tem uma carteira?{" "}
+            Ainda não tem uma carteira? Acesse o link e crie a sua já:{" "}
             <a
               target="_blank"
               href={"https://metamask.io/download/"}
@@ -160,17 +160,6 @@ export default function Home() {
             >
               Clique aqui.
             </a>
-          </p>
-          <p className="text-sm md:text-base text-gray-200">
-            Conecte sua carteira à Sepolia{" "}
-            <a
-              target="_blank"
-              href={"https://chainlist.org/?search=11155111&testnets=true"}
-              className="text-blue-500 hover:underline"
-            >
-              clicando aqui
-            </a>
-            .
           </p>
 
           <form
