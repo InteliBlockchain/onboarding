@@ -7,15 +7,14 @@ import wpp from "@/app/wpp.svg";
 import { useForm } from "react-hook-form";
 import { ethers } from "ethers";
 import erc721abi from "@/app/ERC721ABI.json";
-import { create } from "ipfs-http-client";
 import axios from 'axios';
-
+import dotenv from 'dotenv';
 // Configurar suas credenciais do Pinata
-const pinataApiKey = '4a5dd9e3b8456f0238dd';
-const pinataSecretApiKey = '9492141181a9ee2fb3b3f4f7df4356a00706d7f05a50777460fce109b22ebeaf';
+dotenv.config();
+const pinataApiKey = process.env.NEXT_PUBLIC_PINATA_API_KEY as string;
+const pinataSecretApiKey = process.env.NEXT_PUBLIC_PINATA_SECRET_API_KEY as string;
 
 // Caminho para a imagem que você deseja enviar
-
 
 
 type FormData = {
@@ -26,20 +25,39 @@ type FormData = {
 
 
 export default function Home() {
-  const contractAddress = "0xC5D1185d2a592Fc1609F63a5f448805CFF8d56ec";
+  const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as string;
+  const privateKey = process.env.NEXT_PUBLIC_PRIVATE_KEY as string;
   const abi = erc721abi;
-  const privateKey = "e1bc8a6cf9c83a7741a10a6d33d698ccce67c3053ea570342e1a52722a8d64d8";
+
+  async function postToPinata(data: FormData) {
+    try {
+      const response = await axios.post('https://api.pinata.cloud/pinning/pinJSONToIPFS', data, {
+        headers: {
+          'Content-Type': 'application/json',
+          'pinata_api_key': pinataApiKey,
+          'pinata_secret_api_key': pinataSecretApiKey,
+        },
+      });
+
+      const cid = response.data.IpfsHash;
+      console.log('Post para o IPFS bem-sucedido. CID:', cid);
+      return cid;
+    } catch (error) {
+      console.error('Erro ao postar para o IPFS:', error);
+      throw error; 
+    }
+  }
 
   const mintNFT = async (data: FormData) => {
     try {
-
       const provider = ethers.getDefaultProvider("https://eth-sepolia.g.alchemy.com/v2/Q2X3lkG-JLa37uT_aK78RmtR49_2DsHJ");
       const wallet = new ethers.Wallet(privateKey, provider);
       const contract = new ethers.Contract(contractAddress, abi, wallet);
 
-      const transaction = await contract.safeMint(data.wallet, `https://ipfs.io/ipfs/QmbB1kr63iGUHLFfibtHjabrpoQW41xBXMTZRTC8dQ1hRG`);
+      const cid = await postToPinata(data); // Get the CID from postToPinata
+      const transaction = await contract.safeMint(data.wallet, `https://ipfs.io/ipfs/${cid}`);
       const receipt = await transaction.wait();
-    
+
       console.log("Transação confirmada:", receipt);
       return receipt;
     } catch (error) {
