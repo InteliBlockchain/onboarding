@@ -1,10 +1,21 @@
 "use client";
-import Image from "next/image";
 import { useState } from "react";
+import Image from "next/image";
 import logo from "@/app/logo.svg";
 import github from "@/app/github.svg";
 import wpp from "@/app/wpp.svg";
 import { useForm } from "react-hook-form";
+import { ethers } from "ethers";
+import erc721abi from "@/app/ERC721ABI.json";
+import axios from 'axios';
+import dotenv from 'dotenv';
+// Configurar suas credenciais do Pinata
+dotenv.config();
+const pinataApiKey = process.env.NEXT_PUBLIC_PINATA_API_KEY as string;
+const pinataSecretApiKey = process.env.NEXT_PUBLIC_PINATA_SECRET_API_KEY as string;
+
+// Caminho para a imagem que você deseja enviar
+
 
 type FormData = {
   name: string;
@@ -12,22 +23,48 @@ type FormData = {
   wallet: string;
 };
 
+
 export default function Home() {
-  // {
-  // 	"attributes": [
-  // 		{
-  // 			"trait_type": "Shape",
-  // 			"value": "Circle"
-  // 		},
-  // 		{
-  // 			"trait_type": "Mood",
-  // 			"value": "Sad"
-  // 		}
-  // 	],
-  // 	"description": "A sad circle.",
-  // 	"image": "https://ipfs.io/ipfs/QmbB1kr63iGUHLFfibtHjabrpoQW41xBXMTZRTC8dQ1hRG",
-  // 	"name": "Sad Circle"
-  // }
+  const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as string;
+  const privateKey = process.env.NEXT_PUBLIC_PRIVATE_KEY as string;
+  const abi = erc721abi;
+
+  async function postToPinata(data: FormData) {
+    try {
+      const response = await axios.post('https://api.pinata.cloud/pinning/pinJSONToIPFS', data, {
+        headers: {
+          'Content-Type': 'application/json',
+          'pinata_api_key': pinataApiKey,
+          'pinata_secret_api_key': pinataSecretApiKey,
+        },
+      });
+
+      const cid = response.data.IpfsHash;
+      console.log('Post para o IPFS bem-sucedido. CID:', cid);
+      return cid;
+    } catch (error) {
+      console.error('Erro ao postar para o IPFS:', error);
+      throw error; 
+    }
+  }
+
+  const mintNFT = async (data: FormData) => {
+    try {
+      const provider = ethers.getDefaultProvider("https://eth-sepolia.g.alchemy.com/v2/Q2X3lkG-JLa37uT_aK78RmtR49_2DsHJ");
+      const wallet = new ethers.Wallet(privateKey, provider);
+      const contract = new ethers.Contract(contractAddress, abi, wallet);
+
+      const cid = await postToPinata(data); // Get the CID from postToPinata
+      const transaction = await contract.safeMint(data.wallet, `https://ipfs.io/ipfs/${cid}`);
+      const receipt = await transaction.wait();
+
+      console.log("Transação confirmada:", receipt);
+      return receipt;
+    } catch (error) {
+      console.error("Erro ao chamar a função safeMint:", error);
+    }
+  };
+
   const {
     handleSubmit,
     register,
@@ -36,13 +73,19 @@ export default function Home() {
 
   const [loading, setLoading] = useState(false);
 
-  const onSubmit = (data: { name: string; email: string; wallet: string }) => {
+  const onSubmit = async (data: FormData) => {
     setLoading(true);
 
-    setTimeout(() => console.log(data), 1000);
+    try {
+      const receipt = await mintNFT(data);
+      console.log("Receipt:", receipt);
+    } catch (error) {
+      console.error("Erro ao criar NFT:", error);
+    }
 
     setLoading(false);
   };
+
 
   return (
     <div className="flex min-h-screen w-full h-full items-center justify-center">
