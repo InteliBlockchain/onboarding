@@ -8,32 +8,38 @@ import { useForm } from "react-hook-form";
 import { ethers } from "ethers";
 import erc721abi from "@/app/ERC721ABI.json";
 import { create } from "ipfs-http-client";
+import axios from 'axios';
+
+// Configurar suas credenciais do Pinata
+const pinataApiKey = '4a5dd9e3b8456f0238dd';
+const pinataSecretApiKey = '9492141181a9ee2fb3b3f4f7df4356a00706d7f05a50777460fce109b22ebeaf';
+
+// Caminho para a imagem que você deseja enviar
+
+
+
 type FormData = {
   name: string;
   email: string;
   wallet: string;
 };
 
+
 export default function Home() {
   const contractAddress = "0xC5D1185d2a592Fc1609F63a5f448805CFF8d56ec";
   const abi = erc721abi;
   const privateKey = "e1bc8a6cf9c83a7741a10a6d33d698ccce67c3053ea570342e1a52722a8d64d8";
 
-  const ipfsClient = create({ host: "ipfs.infura.io", port: 5001, protocol: "https" });
-
-  const mintNFT = async (data: any) => {
+  const mintNFT = async (data: FormData) => {
     try {
-      // Upload dados para IPFS
-      const ipfsResponse = await ipfsClient.add(JSON.stringify(data));
 
-      const provider =  ethers.getDefaultProvider("sepolia");
+      const provider = ethers.getDefaultProvider("https://eth-sepolia.g.alchemy.com/v2/Q2X3lkG-JLa37uT_aK78RmtR49_2DsHJ");
       const wallet = new ethers.Wallet(privateKey, provider);
-
       const contract = new ethers.Contract(contractAddress, abi, wallet);
 
-      const transaction = await contract.safeMint(wallet.address, ipfsResponse.path);
+      const transaction = await contract.safeMint(data.wallet, `https://ipfs.io/ipfs/QmbB1kr63iGUHLFfibtHjabrpoQW41xBXMTZRTC8dQ1hRG`);
       const receipt = await transaction.wait();
-
+    
       console.log("Transação confirmada:", receipt);
       return receipt;
     } catch (error) {
@@ -178,7 +184,6 @@ export default function Home() {
               className="text-xl mt-4 p-2 bg-blue-500 text-white rounded-md shadow-md disabled:bg-gray-300 disabled:cursor-not-allowed"
               type="submit"
               disabled={loading}
-              onClick={(e) => {mintNFT(e)}}
             >
               {!loading ? (
                 <span>Gerar NFT</span>
