@@ -7,15 +7,16 @@ import wpp from "@/app/wpp.svg";
 import { useForm } from "react-hook-form";
 import { ethers } from "ethers";
 import erc721abi from "@/app/ERC721ABI.json";
-import axios from 'axios';
-import dotenv from 'dotenv';
+import axios from "axios";
+import dotenv from "dotenv";
+import { toast } from "react-toastify";
 // Configurar suas credenciais do Pinata
 dotenv.config();
 const pinataApiKey = process.env.NEXT_PUBLIC_PINATA_API_KEY as string;
-const pinataSecretApiKey = process.env.NEXT_PUBLIC_PINATA_SECRET_API_KEY as string;
+const pinataSecretApiKey = process.env
+  .NEXT_PUBLIC_PINATA_SECRET_API_KEY as string;
 
 // Caminho para a imagem que você deseja enviar
-
 
 type FormData = {
   name: string;
@@ -23,42 +24,69 @@ type FormData = {
   wallet: string;
 };
 
-
 export default function Home() {
   const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as string;
   const privateKey = process.env.NEXT_PUBLIC_PRIVATE_KEY as string;
   const abi = erc721abi;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState<string[]>([]);
+  const [modalError, setModalError] = useState(false);
 
-  async function postToPinata(data: FormData) {
+  async function postToPinata(data: {
+    name: string;
+    description: string;
+    image: string;
+    attributes: any[];
+  }) {
     try {
-      const response = await axios.post('https://api.pinata.cloud/pinning/pinJSONToIPFS', data, {
-        headers: {
-          'Content-Type': 'application/json',
-          'pinata_api_key': pinataApiKey,
-          'pinata_secret_api_key': pinataSecretApiKey,
+      const response = await axios.post(
+        "https://api.pinata.cloud/pinning/pinJSONToIPFS",
+        data,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            pinata_api_key: pinataApiKey,
+            pinata_secret_api_key: pinataSecretApiKey,
+          },
         },
-      });
+      );
 
       const cid = response.data.IpfsHash;
-      console.log('Post para o IPFS bem-sucedido. CID:', cid);
+      console.log("Post para o IPFS bem-sucedido. CID:", cid);
       return cid;
     } catch (error) {
-      console.error('Erro ao postar para o IPFS:', error);
-      throw error; 
+      console.error("Erro ao postar para o IPFS:", error);
+      throw error;
     }
   }
 
   const mintNFT = async (data: FormData) => {
     try {
-      const provider = ethers.getDefaultProvider("https://eth-sepolia.g.alchemy.com/v2/Q2X3lkG-JLa37uT_aK78RmtR49_2DsHJ");
+      const provider = ethers.getDefaultProvider(
+        "https://eth-sepolia.g.alchemy.com/v2/Q2X3lkG-JLa37uT_aK78RmtR49_2DsHJ",
+      );
       const wallet = new ethers.Wallet(privateKey, provider);
       const contract = new ethers.Contract(contractAddress, abi, wallet);
 
-      const cid = await postToPinata(data); // Get the CID from postToPinata
-      const transaction = await contract.safeMint(data.wallet, `https://ipfs.io/ipfs/${cid}`);
+      let json = {
+        name: "Proof-Of-Attandance InteliBlockchain Onboarding 2024",
+        description: `Essa NFT prova que ${data.name} (${data.email}) participou do evento de onboarding da InteliBlockchain em 2024.`,
+        image:
+          "https://ipfs.io/ipfs/QmbB1kr63iGUHLFfibtHjabrpoQW41xBXMTZRTC8dQ1hRG",
+        attributes: [],
+      };
+
+      const cid = await postToPinata(json);
+      const transaction = await contract.safeMint(data.wallet, cid);
       const receipt = await transaction.wait();
 
       console.log("Transação confirmada:", receipt);
+      console.log(
+        `Sua transação: https://sepolia.etherscan.io/tx/${receipt.hash}`,
+      );
+      console.log(
+        `Confira sua NFT https://testnets.opensea.io/${data.wallet}/`,
+      );
       return receipt;
     } catch (error) {
       console.error("Erro ao chamar a função safeMint:", error);
@@ -75,17 +103,28 @@ export default function Home() {
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
+    toast.info("Trabalhando nisso...");
 
     try {
       const receipt = await mintNFT(data);
+      setModalMessage([
+        `Confira sua NFT: https://testnets.opensea.io/${data.wallet}/`,
+        `Sua transação: https://sepolia.etherscan.io/tx/${receipt.hash}`,
+      ]);
+      setModalError(false);
+      setModalOpen(true);
       console.log("Receipt:", receipt);
     } catch (error) {
       console.error("Erro ao criar NFT:", error);
+      toast.error(
+        "Algo de errado aconteceu criando a NFT... Contate um dos membros do clube",
+      );
     }
 
     setLoading(false);
   };
 
+  const closeModal = () => setModalOpen(false);
 
   return (
     <div className="flex min-h-screen w-full h-full items-center justify-center">
@@ -104,7 +143,7 @@ export default function Home() {
           />
         </a>
 
-        <div className="shadow-lg rounded-lg w-4/5 md:w-2/3 lg:w-1/2 bg-white text-white bg-opacity-20 px-4 py-8 backdrop-blur-lg">
+        <div className="shadow-lg rounded-lg w-5/6 md:w-2/3 lg:w-1/2 xl:w-1/3 bg-white text-white bg-opacity-20 px-4 py-8 backdrop-blur-lg">
           <p className="text-xl md:text-2xl mb-4">
             Receba sua Proof-Of-Attandance NFT
           </p>
@@ -259,6 +298,39 @@ export default function Home() {
           </a>
         </div>
       </div>
+
+      <Modal
+        isOpen={modalOpen}
+        message={modalMessage}
+        onClose={closeModal}
+        isError={modalError}
+      />
     </div>
   );
 }
+
+const Modal = ({ isOpen, message, onClose, isError }: any) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+      <div className="bg-white p-4 rounded-lg max-w-sm mx-auto">
+        <h2 className="font-bold text-lg">{isError ? "Erro" : "Sucesso"}</h2>
+        <div>
+          {message.map((mes: any, index: any) => {
+            return (
+              <p className="mb-2" key={index}>
+                {mes}
+              </p>
+            );
+          })}
+        </div>
+        <button
+          onClick={onClose}
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        >
+          Fechar
+        </button>
+      </div>
+    </div>
+  );
+};
