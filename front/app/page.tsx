@@ -313,13 +313,20 @@ const Modal = ({ isOpen, message, onClose, isError }: any) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-      <div className="bg-white p-4 rounded-lg max-w-sm mx-auto">
+      <div className="bg-white p-4 rounded-lg w-full max-w-sm mx-auto">
         <h2 className="font-bold text-lg">{isError ? "Erro" : "Sucesso"}</h2>
         <div>
           {message.map((mes: any, index: any) => {
             return (
-              <p className="mb-2" key={index}>
-                {mes}
+              <p className="mb-2 break-words" key={index}>
+                {mes.split(": ")[0]}:{" "}
+                <a
+                  href={mes.split(": ")[1]}
+                  target="_blank"
+                  className="text-blue-400 hover:underline"
+                >
+                  {mes.split(": ")[1]}
+                </a>
               </p>
             );
           })}
