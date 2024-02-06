@@ -3,7 +3,7 @@
 import axios, {AxiosResponse} from "axios";
 import dotenv from "dotenv";
 import {ethers} from "ethers";
-import erc721abi from "@/app/ERC721ABI.json";
+import erc721abi from "@/assets/ERC721ABI.json";
 
 dotenv.config();
 const pinataApiKey = process.env.NEXT_PUBLIC_PINATA_API_KEY as string;
@@ -63,10 +63,10 @@ export async function mintNFT(data: FormData){
 
         const cid = await postToPinata(json);
         const transaction = await contract.safeMint(data.wallet, cid);
-        const receipt = transaction.wait();
+        const receipt = await transaction.wait();
 
         return receipt.hash;
     } catch (error) {
         throw error;
     }
-};
+}

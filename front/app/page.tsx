@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
 import Image from "next/image";
-import logo from "@/app/logo.svg";
-import github from "@/app/github.svg";
-import wpp from "@/app/wpp.svg";
+import logo from "@/assets/logo.svg";
+import github from "@/assets/github.svg";
+import wpp from "@/assets/wpp.svg";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import {mintNFT} from "@/app/action";
