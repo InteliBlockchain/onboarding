@@ -5,18 +5,8 @@ import logo from "@/app/logo.svg";
 import github from "@/app/github.svg";
 import wpp from "@/app/wpp.svg";
 import { useForm } from "react-hook-form";
-import { ethers } from "ethers";
-import erc721abi from "@/app/ERC721ABI.json";
-import axios from "axios";
-import dotenv from "dotenv";
 import { toast } from "react-toastify";
-// Configurar suas credenciais do Pinata
-dotenv.config();
-const pinataApiKey = process.env.NEXT_PUBLIC_PINATA_API_KEY as string;
-const pinataSecretApiKey = process.env
-  .NEXT_PUBLIC_PINATA_SECRET_API_KEY as string;
-
-// Caminho para a imagem que você deseja enviar
+import {mintNFT} from "@/app/action";
 
 type FormData = {
   name: string;
@@ -25,73 +15,10 @@ type FormData = {
 };
 
 export default function Home() {
-  const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as string;
-  const privateKey = process.env.NEXT_PUBLIC_PRIVATE_KEY as string;
-  const abi = erc721abi;
+
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState<string[]>([]);
   const [modalError, setModalError] = useState(false);
-
-  async function postToPinata(data: {
-    name: string;
-    description: string;
-    image: string;
-    attributes: any[];
-  }) {
-    try {
-      const response = await axios.post(
-        "https://api.pinata.cloud/pinning/pinJSONToIPFS",
-        data,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            pinata_api_key: pinataApiKey,
-            pinata_secret_api_key: pinataSecretApiKey,
-          },
-        },
-      );
-
-      const cid = response.data.IpfsHash;
-      console.log("Post para o IPFS bem-sucedido. CID:", cid);
-      return cid;
-    } catch (error) {
-      console.error("Erro ao postar para o IPFS:", error);
-      throw error;
-    }
-  }
-
-  const mintNFT = async (data: FormData) => {
-    try {
-      const provider = ethers.getDefaultProvider(
-        "https://eth-sepolia.g.alchemy.com/v2/Q2X3lkG-JLa37uT_aK78RmtR49_2DsHJ",
-      );
-      const wallet = new ethers.Wallet(privateKey, provider);
-      const contract = new ethers.Contract(contractAddress, abi, wallet);
-
-      let json = {
-        name: "Proof-Of-Attandance InteliBlockchain Onboarding 2024",
-        description: `Essa NFT prova que ${data.name} (${data.email}) participou do evento de onboarding da InteliBlockchain em 2024.`,
-        image:
-          "https://ipfs.io/ipfs/QmbB1kr63iGUHLFfibtHjabrpoQW41xBXMTZRTC8dQ1hRG",
-        attributes: [],
-      };
-
-      const cid = await postToPinata(json);
-      const transaction = await contract.safeMint(data.wallet, cid);
-      const receipt = await transaction.wait();
-
-      console.log("Transação confirmada:", receipt);
-      console.log(
-        `Sua transação: https://sepolia.etherscan.io/tx/${receipt.hash}`,
-      );
-      console.log(
-        `Confira sua NFT https://testnets.opensea.io/${data.wallet}/`,
-      );
-      return receipt;
-    } catch (error) {
-      console.error("Erro ao chamar a função safeMint:", error);
-    }
-  };
 
   const {
     handleSubmit,
@@ -109,13 +36,11 @@ export default function Home() {
       const receipt = await mintNFT(data);
       setModalMessage([
         `Confira sua NFT: https://testnets.opensea.io/${data.wallet}/`,
-        `Sua transação: https://sepolia.etherscan.io/tx/${receipt.hash}`,
+        `Sua transação: https://sepolia.etherscan.io/tx/${receipt}`,
       ]);
       setModalError(false);
       setModalOpen(true);
-      console.log("Receipt:", receipt);
     } catch (error) {
-      console.error("Erro ao criar NFT:", error);
       toast.error(
         "Algo de errado aconteceu criando a NFT... Contate um dos membros do clube",
       );
